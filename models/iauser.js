@@ -13,7 +13,8 @@ const userModel = (sequelize, Sequelize) => {
 			allowNull: false,
 			validate: {
 				isEmail: true
-			}
+			},
+			unique:true
 		},
 		password: {
 			type: Sequelize.STRING,

@@ -37,7 +37,7 @@ router.post('/loginUI',  passport.authenticate('login', {
 	failureFlash: true
 },null));
 
-router.post('/register',  passport.authenticate('login', {
+router.post('/register',  passport.authenticate('register', {
 	successRedirect: '/registerSuccess',
 	failureRedirect: '/registerFailure',
 	failureFlash: true

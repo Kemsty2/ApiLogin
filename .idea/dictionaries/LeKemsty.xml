@@ -5,6 +5,7 @@
       <w>bcrypt</w>
       <w>bgbtn</w>
       <w>bienvenue</w>
+      <w>données</w>
       <w>elems</w>
       <w>enseignant</w>
       <w>etudiant</w>
@@ -14,6 +15,7 @@
       <w>javascripts</w>
       <w>matricule</w>
       <w>obligatoire</w>
+      <w>procédure</w>
       <w>resave</w>
       <w>sequelize</w>
       <w>switchery</w>

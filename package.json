@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "start": "npm run start-dev",
-    "start-prod": "node ./dist/bin/www.js",
+    "start-prod": "forever start ./dist/app.js",
     "clean": "rm -rf dist",
     "start-dev": "nodemon --exec babel-node ./bin/www",
     "build-prod": "npm run clean && npx babel . --out-dir ./dist/ --ignore './node_modules/*'"

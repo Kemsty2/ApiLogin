@@ -4,10 +4,10 @@
   "private": true,
   "scripts": {
     "start": "npm run start-dev",
-    "start-prod": "forever start ./dist/app.js",
+    "start-prod": "pm2 start ./dist/bin/www.js",
     "clean": "rm -rf dist",
     "start-dev": "nodemon --exec babel-node ./bin/www",
-    "build-prod": "npm run clean && npx babel . --out-dir ./dist/ --ignore './node_modules/*'"
+    "build-prod": "npm run clean && npx babel . --out-dir ./dist/ --copy-files --ignore './node_modules/*'"
   },
   "dependencies": {
     "bcrypt-nodejs": "0.0.3",

@@ -4,8 +4,10 @@
   "private": true,
   "scripts": {
     "start": "npm run start-dev",
-    "start-prod": "node ./bin/www",
-    "start-dev": "nodemon --exec babel-node ./bin/www"
+    "start-prod": "pm2 start ./dist/bin/www.js",
+    "clean": "rm -rf dist",
+    "start-dev": "nodemon --exec babel-node ./bin/www",
+    "build-prod": "npm run clean && npx babel . --out-dir ./dist/ --copy-files --ignore './node_modules/*'"
   },
   "dependencies": {
     "bcrypt-nodejs": "0.0.3",
@@ -21,6 +23,7 @@
     "morgan": "~1.9.0",
     "mysql": "^2.16.0",
     "mysql2": "^1.6.4",
+    "nodemon": "^1.18.9",
     "passport": "^0.4.0",
     "passport-local": "^1.0.0",
     "pug": "^2.0.3",
@@ -29,7 +32,13 @@
   "devDependencies": {
     "@babel/cli": "^7.2.3",
     "@babel/core": "^7.2.2",
+<<<<<<< HEAD
     "@babel/preset-env": "^7.2.3",
     "nodemon": "^1.18.9"
+=======
+    "@babel/node": "^7.2.2",
+    "@babel/preset-env": "^7.2.3",
+    "forever": "^0.15.3"
+>>>>>>> 7b406935735fbda0aaf8b714dbd47ae843697e2f
   }
 }

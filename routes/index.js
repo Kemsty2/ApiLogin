@@ -5,71 +5,127 @@ let router;
 router = express.Router();
 
 /*
-* @summary:
-* @params:
-* @result:
-* */
+ * @summary:
+ * @params:
+ * @result:
+ * */
 
 router.get('/login', (req, res) => {
-	res.render('login', {title: "Login"})
+  res.render('login', {
+    title: "Login"
+  })
 });
 
 router.get('/register', (req, res) => {
-	res.render('register', {title: "Register"})
+  res.render('register', {
+    title: "Register"
+  })
 });
 
-router.post('/login', (req, res) => {
-	const body = req.body;
-	let requestUI = body.requestUI;
-	console.log(requestUI);
-	if (requestUI) {
-		return res.redirect('/login');
-	}
-	passport.authenticate('login', null, null)(req, res, function () {
-		console.log(req.user);
-		console.log(req.flash('loginMessage'));
-	});
+router.post('/register', (req, res, next) => {
+  passport.authenticate('register', (err, user, info) => {
+    try {
+      const body = req.body;
+      const platformName = body.platformName;
+      const token = body.token;
+      const requestUI = body.requestUI;
+      const error = req.flash('registerMessage')[0];
+
+      if (err) {
+        console.log(err);
+        return res.redirect('/registerFailure');
+      }
+      if (requestUI) {
+        return res.redirect('/register');
+      }
+      if (user) {
+        console.log(user);
+        return res.json({
+          result: true,
+          user: user
+        });
+      } else {
+        return res.json({
+          result: false,
+          error: error
+        })
+      }
+    } catch (error) {
+      console.error(error);
+      res.redirect('/register');
+    }
+  })(req, res, next);
 });
 
-router.post('/loginUI',  passport.authenticate('login', {
-	successRedirect: '/loginSuccess',
-	failureRedirect: '/loginFailure',
-	failureFlash: true
-},null));
+router.post('/login', (req, res, next) => {
+  passport.authenticate('login', (err, user, info) => {
+    try {
+      let requestUI, platformName, token;
+      const body = req.body;
+      if (body.credentials) {
+        requestUI = body.credentials.requestUI;
+        platformName = body.credentials.platformName;
+        token = body.credentials.token;
+      }
 
-router.post('/register',  passport.authenticate('register', {
-	successRedirect: '/registerSuccess',
-	failureRedirect: '/registerFailure',
-	failureFlash: true
-},null));
+      const error = req.flash('loginMessage')[0];
 
-router.get('/loginSuccess', (req, res) => {
-	const user = req.user;
-	const result = {
-		result: true,
-		user: user
-	};
-	res.json(result);
+      if (err) {
+        console.log(err);
+        res.json({
+          result: false,
+          error: error
+        });
+      }
+      if (requestUI) {
+        return res.redirect('/login');
+      }
+      console.log(user);
+      if (user) {
+        return res.json({
+          result: true,
+          user: user
+        })
+      } else {
+        return res.json({
+          result: false,
+          error: error
+        });
+      }
+    } catch (error) {
+      console.error(error);
+      res.redirect('/login');
+    }
+  })(req, res, next);
+});
+
+/* router.get('/loginSuccess', (req, res) => {
+  const user = req.user;
+  const result = {
+    result: true,
+    user: user
+  };
+  res.json(result);
 });
 
 router.get('/loginFailure', (req, res) => {
-	const error = req.flash('loginMessage')[0];
-	res.json(error);
+  const error = req.flash('loginMessage')[0];
+  res.json(error);
 });
 
 router.get('/registerSuccess', (req, res) => {
-	const user = req.user;
-	const result = {
-		result: true,
-		user: user
-	};
-	res.json(result);
+  const user = req.user;
+  const result = {
+    result: true,
+    user: user
+  };
+  res.json(result);
 });
 
 router.get('/registerFailure', (req, res) => {
-	console.log(req.user);
-	const error = req.flash('registerMessage')[0];
-	res.json(error);
-});
+  console.log(req.user);
+  const error = req.flash('registerMessage')[0];
+  res.json(error);
+}); */
 
 module.exports = router;

@@ -30,7 +30,9 @@ passport.deserializeUser((matricule, done) => {
 		} else {
 			done(user.errors, null);
 		}
-	})
+	}).catch(err => {
+		console.error(err);
+	});
 });
 
 /*
@@ -72,6 +74,8 @@ passport.use('register', new LocalStrategy({
 				}else{
 					return done(null, newUser)
 				}
+			}).catch(err => {
+				return done(null, false, req.flash('registerMessage', {result: false, error: '10'}));
 			})
 		}
 	}).catch(err => {

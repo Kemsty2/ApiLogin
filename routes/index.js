@@ -45,10 +45,7 @@ router.post('/register', (req, res, next) => {
           user: user
         });
       } else {
-        return res.json({
-          result: false,
-          error: error
-        })
+        return res.json({...error});
       }
     } catch (error) {
       console.error(error);
@@ -72,10 +69,7 @@ router.post('/login', (req, res, next) => {
 
       if (err) {
         console.log(err);
-        res.json({
-          result: false,
-          error: error
-        });
+        res.json({...error});
       }
       if (requestUI) {
         return res.redirect('/login');
@@ -87,9 +81,7 @@ router.post('/login', (req, res, next) => {
           user: user
         })
       } else {
-        return res.json({
-          result: false,
-          error: error
+        return res.json({...error});
         });
       }
     } catch (error) {

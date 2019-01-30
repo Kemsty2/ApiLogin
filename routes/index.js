@@ -82,7 +82,6 @@ router.post('/login', (req, res, next) => {
         })
       } else {
         return res.json({...error});
-        });
       }
     } catch (error) {
       console.error(error);

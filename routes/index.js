@@ -1,5 +1,6 @@
 import express from "express";
 import passport from "passport";
+import { verifyToken } from "../config/utils";
 
 let router;
 router = express.Router();
@@ -23,7 +24,7 @@ router.get('/register', (req, res) => {
 });
 
 router.post('/register', (req, res, next) => {
-  passport.authenticate('register', (err, user, info) => {
+  passport.authenticate('register', async (err, user, info) => {
     try {
       const body = req.body;
       const platformName = body.platformName;
@@ -31,21 +32,28 @@ router.post('/register', (req, res, next) => {
       const requestUI = body.requestUI;
       const error = req.flash('registerMessage')[0];
 
-      if (err) {
-        console.log(err);
-        return res.redirect('/registerFailure');
-      }
-      if (requestUI) {
-        return res.redirect('/register');
-      }
-      if (user) {
-        console.log(user);
-        return res.json({
-          result: true,
-          user: user
-        });
+      if (await verifyToken(token)) {
+        if (err) {
+          console.log(err);
+          return res.json({ ...error });
+        }
+        if (requestUI) {
+          return res.redirect('/register');
+        } else {
+          if (user) {
+            console.log(user);
+            return res.json({
+              result: true,
+              user: user
+            });
+          } else {
+            return res.json({ ...error });
+          }
+        }
       } else {
-        return res.json({...error});
+        res.json({
+          error: "Don't have Access To This API"
+        });
       }
     } catch (error) {
       console.error(error);
@@ -55,9 +63,9 @@ router.post('/register', (req, res, next) => {
 });
 
 router.post('/login', (req, res, next) => {
-  passport.authenticate('login', (err, user, info) => {
+  passport.authenticate('login', async (err, user, info) => {
     try {
-      let requestUI, platformName, token;
+      let requestUI, platformName, token = "";
       const body = req.body;
       if (body.credentials) {
         requestUI = body.credentials.requestUI;
@@ -66,22 +74,29 @@ router.post('/login', (req, res, next) => {
       }
 
       const error = req.flash('loginMessage')[0];
-
-      if (err) {
-        console.log(err);
-        res.json({...error});
-      }
-      if (requestUI) {
-        return res.redirect('/login');
-      }
-      console.log(user);
-      if (user) {
-        return res.json({
-          result: true,
-          user: user
-        })
+      console.log(await verifyToken(token));
+      if (await verifyToken(token)) {
+        if (err) {
+          console.log(err);
+          res.json({ ...error });
+        }
+        if (requestUI) {
+          return res.redirect('/login');
+        } else {
+          console.log(user);
+          if (user) {
+            return res.json({
+              result: true,
+              user: user
+            })
+          } else {
+            return res.json({ ...error });
+          }
+        }
       } else {
-        return res.json({...error});
+        res.json({
+          error: "Don't have Access To This API"
+        });
       }
     } catch (error) {
       console.error(error);
@@ -89,34 +104,5 @@ router.post('/login', (req, res, next) => {
     }
   })(req, res, next);
 });
-
-/* router.get('/loginSuccess', (req, res) => {
-  const user = req.user;
-  const result = {
-    result: true,
-    user: user
-  };
-  res.json(result);
-});
-
-router.get('/loginFailure', (req, res) => {
-  const error = req.flash('loginMessage')[0];
-  res.json(error);
-});
-
-router.get('/registerSuccess', (req, res) => {
-  const user = req.user;
-  const result = {
-    result: true,
-    user: user
-  };
-  res.json(result);
-});
-
-router.get('/registerFailure', (req, res) => {
-  console.log(req.user);
-  const error = req.flash('registerMessage')[0];
-  res.json(error);
-}); */
 
 module.exports = router;

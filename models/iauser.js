@@ -1,5 +1,5 @@
 const userModel = (sequelize, Sequelize) => {
-	const User = sequelize.define('iauser', {
+	const User = sequelize.define('IAUser', {
 		matricule: {
 			primaryKey: true,
 			type: Sequelize.STRING,

@@ -3,20 +3,82 @@ import passport from "passport";
 import {
   verifyToken
 } from "../config/utils";
+import models from "../models";
 
 let router;
 router = express.Router();
+const User = user(models.sequelize, models.Sequelize);
 
 /*
- * @summary:
- * @params:
- * @result:
+ * @summary: "Rediriger le developppeur vers son redirectUrl"
+ * @params: String redirectUrl=req.session.redirectUrl, String matricule=req.session.userMatricule
+ * @result: Une page html pour rediriger le développeur vers sa page de redirection avec le matricule de l'utilisateur
  * */
-
 router.get('/redirect', (req, res) => {  
   res.render('redirect', {redirectUrl: req.session.redirectUrl, matricule: req.session.userMatricule, layout:null});
 });
 
+/*
+ * @summary: "Récupérer les informations de l'utilisateur"
+ * @params: {platformName, token}
+ * @result: {user, result} or {result, error}
+ * */
+router.post('/getUser', (req, res) => {
+  try {
+    const platformName = body.platformName;
+    const token = body.token;
+    const matricule = body.matricule;
+
+    verifyToken(token).then(result => {
+      if(result){
+        User.findOne({
+          where: {
+            matricule: matricule
+          }
+        }).then(user => {
+          if(user){
+            const userinfo = user.get();
+            //delete userinfo.password;
+            res.json({
+              result: true,
+              user: userinfo
+            });
+          }else{
+            res.json({
+              result: false,
+              error: "Don't find user with matricule " + matricule
+            })
+          }
+        }).catch(err => {
+          console.error(err);
+        })
+      }else{
+        res.json({
+          result: false,
+          error: "Don't have Access To This API"
+        })
+      }
+    }).catch(error => {
+      console.error(error);
+      res.json({
+        result: false,
+        error: "An error occurred when processing"
+      })
+    })
+  } catch (error) {
+    console.error(error);
+    res.json({
+      result: false,
+      error: "An error occurred when processing"
+    })
+  }
+});
+
+/*
+ * @summary: "Get Endpoint pour récuperer la page login"
+ * @params: "http://localhost:{PORT}/login?token={token}&redirectUrl={redirectUrl}"
+ * @result: "La page html du login"
+ * */
 router.get('/login', async (req, res) => {
   const token = req.query.token;
   const redirectUrl = req.query.redirectUrl;
@@ -36,6 +98,11 @@ router.get('/login', async (req, res) => {
   }
 });
 
+/*
+ * @summary: "Get Endpoint pour récuperer la page register"
+ * @params: "http://localhost:{PORT}/register?token={token}&redirectUrl={redirectUrl}"
+ * @result: "La page html du register"
+ * */
 router.get('/register', async (req, res) => {
   const token = req.query.token;
   const redirectUrl = req.query.redirectUrl;
@@ -55,6 +122,11 @@ router.get('/register', async (req, res) => {
   }
 });
 
+/*
+ * @summary: "Post Endpoint pour traiter les formulaires de register d'un utilisateur"
+ * @params: Session: {token, redirectUrl, platformName} ou {platformName, token, redirectUrl, user}
+ * @result: {result, user} or {result, error}
+ * */
 router.post('/register', (req, res, next) => {
   passport.authenticate('register', async (err, user, info) => {
     try {
@@ -68,7 +140,7 @@ router.post('/register', (req, res, next) => {
       !req.session.token ? req.session.token = token : null;
       !req.session.redirectUrl ? req.session.redirectUrl = redirectUrl : null;
 
-      if (await verifyToken(token)) {
+      if (await verifyToken(req.session.token)) {
         if (err) {
           console.log(err);
           return res.json({ ...error,
@@ -76,7 +148,7 @@ router.post('/register', (req, res, next) => {
           });
         }
         if (user) {
-          delete user.password;
+          //delete user.password;
           console.log(user);
           if(requestUI){
             req.session.userMatricule = user.matricule;
@@ -105,6 +177,11 @@ router.post('/register', (req, res, next) => {
   })(req, res, next);
 });
 
+/*
+ * @summary: "Post Endpoint pour traiter les formulaires de login d'un utilisateur"
+ * @params: Session: {token, redirectUrl, platformName} ou {credentials: {platformName, token, redirectUrl}, user: user}
+ * @result: {result, user} or {result, error}
+ * */
 router.post('/login', (req, res, next) => {
   passport.authenticate('login', async (err, user, info) => {
     try {
@@ -136,7 +213,7 @@ router.post('/login', (req, res, next) => {
             redirectUrl: redirectUrl
           });
         }
-        delete user.password;
+        //delete user.password;
         if (user) {
           if(requestUI){
             req.session.userMatricule = user.matricule;

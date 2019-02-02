@@ -4,7 +4,7 @@ import {
   verifyToken
 } from "../config/utils";
 import models from "../models";
-
+import user from "../models/iauser";
 let router;
 router = express.Router();
 const User = user(models.sequelize, models.Sequelize);
@@ -12,7 +12,7 @@ const User = user(models.sequelize, models.Sequelize);
 /*
  * @summary: "Rediriger le developppeur vers son redirectUrl"
  * @params: String redirectUrl=req.session.redirectUrl, String matricule=req.session.userMatricule
- * @result: Une page html pour rediriger le développeur vers sa page de redirection avec le matricule de l'utilisateur
+ * @result: Une page html pour rediriger le développeur vers sa page de redirection avec le matricule de l'utilisateur 
  * */
 router.get('/redirect', (req, res) => {  
   res.render('redirect', {redirectUrl: req.session.redirectUrl, matricule: req.session.userMatricule, layout:null});
@@ -77,6 +77,9 @@ router.post('/getUser', (req, res) => {
 /*
  * @summary: "Get Endpoint pour récuperer la page login"
  * @params: "http://localhost:{PORT}/login?token={token}&redirectUrl={redirectUrl}"
+ * @exemple : "http://localhost:3000/login?token=testToken&redirectUrl=http://localhost:3001"
+ * Pour les addresses de type localhost toujours mettre http
+ * pour les autres juste mettres www
  * @result: "La page html du login"
  * */
 router.get('/login', async (req, res) => {

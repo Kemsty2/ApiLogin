@@ -1,6 +1,8 @@
 import express from "express";
 import passport from "passport";
-import { verifyToken } from "../config/utils";
+import {
+  verifyToken
+} from "../config/utils";
 
 let router;
 router = express.Router();
@@ -11,16 +13,46 @@ router = express.Router();
  * @result:
  * */
 
-router.get('/login', (req, res) => {
-  res.render('login', {
-    title: "Login"
-  })
+router.get('/redirect', (req, res) => {  
+  res.render('redirect', {redirectUrl: req.session.redirectUrl, matricule: req.session.userMatricule, layout:null});
 });
 
-router.get('/register', (req, res) => {
-  res.render('register', {
-    title: "Register"
-  })
+router.get('/login', async (req, res) => {
+  const token = req.query.token;
+  const redirectUrl = req.query.redirectUrl;
+
+  req.session.token = token;
+  req.session.redirectUrl = redirectUrl;
+  req.session.requestUI = true;
+  if (await verifyToken(token)) {
+    res.render('login', {
+      title: "Login"
+    });
+  } else {
+    res.json({
+      error: "Don't have Access To This API",
+      redirectUrl: redirectUrl
+    });
+  }
+});
+
+router.get('/register', async (req, res) => {
+  const token = req.query.token;
+  const redirectUrl = req.query.redirectUrl;
+
+  req.session.token = token;
+  req.session.redirectUrl = redirectUrl;
+  req.session.requestUI = true;
+  if (await verifyToken(token)) {
+    res.render('register', {
+      title: "Register"
+    });
+  } else {
+    res.json({
+      error: "Don't have Access To This API",
+      redirectUrl: redirectUrl
+    });
+  }
 });
 
 router.post('/register', (req, res, next) => {
@@ -29,26 +61,37 @@ router.post('/register', (req, res, next) => {
       const body = req.body;
       const platformName = body.platformName;
       const token = body.token;
-      const requestUI = body.requestUI;
+      const redirectUrl = body.redirectUrl;
       const error = req.flash('registerMessage')[0];
+      const requestUI = req.session.requestUI;
+
+      !req.session.token ? req.session.token = token : null;
+      !req.session.redirectUrl ? req.session.redirectUrl = redirectUrl : null;
 
       if (await verifyToken(token)) {
         if (err) {
           console.log(err);
-          return res.json({ ...error });
+          return res.json({ ...error,
+            redirectUrl: req.session.redirectUrl
+          });
         }
-        if (requestUI) {
-          return res.redirect('/register');
-        } else {
-          if (user) {
-            console.log(user);
+        if (user) {
+          delete user.password;
+          console.log(user);
+          if(requestUI){
+            req.session.userMatricule = user.matricule;
+            res.redirect('/redirect');
+          }else{
             return res.json({
               result: true,
-              user: user
+              user: user,
+              redirectUrl: req.session.redirectUrl
             });
-          } else {
-            return res.json({ ...error });
-          }
+          }          
+        } else {
+          return res.json({ ...error,
+            redirectUrl: req.session.redirectUrl
+          });
         }
       } else {
         res.json({
@@ -65,37 +108,55 @@ router.post('/register', (req, res, next) => {
 router.post('/login', (req, res, next) => {
   passport.authenticate('login', async (err, user, info) => {
     try {
-      let requestUI, platformName, token = "";
+      let platformName, token,
+        redirectUrl;
       const body = req.body;
       if (body.credentials) {
-        requestUI = body.credentials.requestUI;
         platformName = body.credentials.platformName;
         token = body.credentials.token;
+        redirectUrl = body.credentials.redirectUrl;        
+      }else{
+        token = req.session.token;
+        redirectUrl = req.session.redirectUrl;
+      }      
+      if ((!token || !redirectUrl)) {
+        return res.json({
+          result: false,
+          error: "Requête Mal Formée"
+        });
       }
+      const requestUI = req.session.requestUI;
 
       const error = req.flash('loginMessage')[0];
       console.log(await verifyToken(token));
       if (await verifyToken(token)) {
         if (err) {
           console.log(err);
-          res.json({ ...error });
+          res.json({ ...error,
+            redirectUrl: redirectUrl
+          });
         }
-        if (requestUI) {
-          return res.redirect('/login');
-        } else {
-          console.log(user);
-          if (user) {
+        delete user.password;
+        if (user) {
+          if(requestUI){
+            req.session.userMatricule = user.matricule;
+            res.redirect('/redirect');
+          }else{
             return res.json({
               result: true,
-              user: user
-            })
-          } else {
-            return res.json({ ...error });
-          }
+              user: user,
+              redirectUrl: redirectUrl
+            });
+          }          
+        } else {
+          return res.json({ ...error,
+            redirectUrl: redirectUrl
+          });
         }
       } else {
         res.json({
-          error: "Don't have Access To This API"
+          error: "Don't have Access To This API",
+          redirectUrl: redirectUrl
         });
       }
     } catch (error) {

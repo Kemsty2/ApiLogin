@@ -1,7 +1,7 @@
 import "dotenv/config";
 
 module.exports = {
-	port: process.env.NODE_PORT,
+	port: process.env.PORT,
 	env: process.env.NODE_ENV,
 	database: process.env.DATABASE,
 	databaseDialect: process.env.DATABASE_DIALECT,

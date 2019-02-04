@@ -62,7 +62,7 @@ router.post('/getUser', (req, res) => {
       console.error(error);
       res.json({
         result: false,
-        error: "An error occurred when processing"
+        error: "An error occurred when processing1"
       })
     })
   } catch (error) {
